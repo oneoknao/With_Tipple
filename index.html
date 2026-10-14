@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>リーグ順位表・対戦表</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; max-width: 900px; margin: auto; }
+  h2 { border-bottom: 2px solid #333; padding-bottom: 5px; margin-top: 40px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+  th { background-color: #eee; white-space: nowrap; }
+  .cross-table th.team-header { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cross-table td { width: 60px; }
+  .self-match { background-color: #ddd; }
+</style>
+</head>
+<body>
+
+  <h2>2025年度順位表</h2>
+  <table id="standingsTable">
+    <thead>
+      <tr>
+        <th>順位</th><th>チーム名</th><th>勝点</th><th>試合</th><th>勝</th><th>分</th><th>負</th><th>得点</th><th>失点</th><th>得失点差</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="10">データ読み込み中...</td></tr>
+    </tbody>
+  </table>
+
+  <h2>対戦表（星取表）</h2>
+  <div style="overflow-x: auto;">
+    <table id="crossTable" class="cross-table">
+      <thead>
+        <tr id="crossHeader">
+          <th></th><!-- 左上の空白 -->
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>データ読み込み中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+<script>
+// ★GASのウェブアプリURLをここに貼る
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzofU6_SmE2ibFG3HYHRj3RmPLzlS4_ZiTquXqTrVHVZZudhihik4gqKACnjYN5BcKD/exec';
+
+async function loadData() {
+  try {
+    const response = await fetch(GAS_URL);
+    const data = await response.json();
+    
+    renderStandings(data.standings);
+    
+    // ★修正: 対戦表の描画には、順位順に並んだ rankedTeams を渡す
+    renderCrossTable(data.rankedTeams, data.crossTable);
+  } catch(e) {
+    document.querySelector('#standingsTable tbody').innerHTML = '<tr><td colspan="10">データの読み込みに失敗しました</td></tr>';
+  }
+}
+
+// 順位表の描画
+function renderStandings(standings) {
+  const tbody = document.querySelector('#standingsTable tbody');
+  tbody.innerHTML = '';
+  if (standings.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10">チームが登録されていません</td></tr>';
+    return;
+  }
+  standings.forEach(team => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${team.rank}</td>
+        <td style="text-align: left; font-weight: bold;">${team.name}</td>
+        <td style="font-size: 1.1em; color: #d00; font-weight: bold;">${team.points}</td>
+        <td>${team.played}</td>
+        <td>${team.win}</td>
+        <td>${team.draw}</td>
+        <td>${team.lose}</td>
+        <td>${team.gf}</td>
+        <td>${team.ga}</td>
+        <td>${team.gd > 0 ? '+' + team.gd : team.gd}</td>
+      </tr>
+    `;
+  });
+}
+
+// 対戦表の描画
+function renderCrossTable(teams, crossData) {
+  const theadTr = document.getElementById('crossHeader');
+  const tbody = document.querySelector('#crossTable tbody');
+  
+  theadTr.innerHTML = '<th>チーム名</th>';
+  tbody.innerHTML = '';
+
+  if (teams.length === 0) {
+    tbody.innerHTML = '<tr><td>データがありません</td></tr>';
+    return;
+  }
+
+  // ヘッダー行（横軸のチーム名）の生成
+  teams.forEach(team => {
+    theadTr.innerHTML += `<th class="team-header" title="${team}">${team}</th>`;
+  });
+
+  // データ行の生成
+  teams.forEach(teamA => {
+    let rowHtml = `<th class="team-header" style="text-align:left;" title="${teamA}">${teamA}</th>`;
+    
+    teams.forEach(teamB => {
+      let scoreStr = crossData[teamA][teamB];
+      if (scoreStr === '-') {
+        rowHtml += `<td class="self-match"></td>`; // 自分自身
+      } else if (scoreStr === '') {
+        rowHtml += `<td></td>`; // 未対戦
+      } else {
+        rowHtml += `<td>${scoreStr}</td>`; // 試合結果 (例: 2 - 1)
+      }
+    });
+    tbody.innerHTML += `<tr>${rowHtml}</tr>`;
+  });
+}
+
+// ページ読み込み時に実行
+window.onload = loadData;
+</script>
+
+</body>
+</html>

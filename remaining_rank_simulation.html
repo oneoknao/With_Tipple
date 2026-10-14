@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>残り試合の順位シミュレーション</title>
+<style>
+  :root { --ink:#14202e; --sub:#6b7785; --paper:#f5f2ea; --card:#ffffff; --navy:#0f2a44; --gold:#c9a13b; --line:#e2ddd0; --on:#0f2a44; --off:#ece8dc; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif; padding:32px 16px; }
+  .wrap { max-width:960px; margin:0 auto; }
+  header { background:var(--navy); color:#fff; border-radius:14px; padding:28px 32px; position:relative; overflow:hidden; }
+  header::after { content:""; position:absolute; right:-40px; top:-40px; width:200px; height:200px; border-radius:50%; border:28px solid rgba(201,161,59,.25); }
+  header .eyebrow { font-size:12px; letter-spacing:.2em; color:var(--gold); }
+  header h1 { margin:6px 0 6px; font-size:26px; }
+  header p { margin:0; color:#c9d3df; font-size:14px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px 24px; margin-top:20px; }
+  h2 { font-size:16px; margin:0 0 14px; display:flex; align-items:center; gap:10px; }
+  h2::before { content:""; width:4px; height:16px; background:var(--gold); border-radius:2px; }
+  .fixtures { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .fx { display:flex; align-items:center; justify-content:space-between; background:var(--paper); border-radius:10px; padding:10px 12px; font-size:14px; }
+  .fa, .fb { flex:1; font-weight:600; }
+  .fb { text-align:right; }
+  .vs { color:var(--sub); font-size:11px; margin:0 8px; }
+  .legend { display:flex; gap:18px; font-size:12px; color:var(--sub); margin:0 0 12px; flex-wrap:wrap; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-2px; margin-right:6px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th { font-size:12px; color:var(--sub); font-weight:600; text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); }
+  td { padding:10px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  td.rk { width:36px; font-weight:700; color:var(--navy); text-align:center; }
+  td.tn { font-weight:700; white-space:nowrap; min-width:140px; }
+  td.num { text-align:center; width:64px; font-variant-numeric:tabular-nums; }
+  td.grid { white-space:nowrap; }
+  .cell { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; margin-right:4px; border-radius:8px; background:var(--off); color:#b3ab98; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .cell.on { background:var(--on); color:#fff; }
+  .cell.cur { box-shadow:0 0 0 2px var(--gold); }
+  td.rng { width:230px; }
+  .track { position:relative; height:10px; background:var(--off); border-radius:6px; }
+  .bar { position:absolute; top:0; height:10px; background:linear-gradient(90deg,#3b6b93,var(--navy)); border-radius:6px; }
+  .mark { position:absolute; top:-4px; width:4px; height:18px; background:var(--gold); border-radius:2px; transform:translateX(-50%); }
+  .rtxt { display:block; font-size:12px; color:var(--sub); margin-top:4px; }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
+  .stat { background:var(--paper); border-radius:10px; padding:12px 14px; font-size:13px; color:var(--sub); }
+  .stat b { display:block; color:var(--ink); font-size:20px; margin-top:4px; font-variant-numeric:tabular-nums; }
+  ul.notes { margin:0; padding-left:18px; font-size:13px; color:var(--sub); line-height:1.8; }
+  @media (max-width:720px) { .fixtures { grid-template-columns:1fr 1fr; } .stats { grid-template-columns:1fr; } td.grid .cell { width:24px; height:24px; font-size:11px; margin-right:2px; } td.rng { width:150px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">LEAGUE SIMULATION</div>
+    <h1>残り試合の順位シミュレーション</h1>
+    <p>2025年度順位表をもとに、残り 9 試合の結果（勝・分・負）の組み合わせから、各チームのありうる順位を整理しました。</p>
+  </header>
+
+  <section>
+    <h2>残りの対戦カード</h2>
+    <div class="fixtures"><div class="fx"><span class="fa">ダスキン</span><span class="vs">vs</span><span class="fb">ソウレ</span></div><div class="fx"><span class="fa">ダスキン</span><span class="vs">vs</span><span class="fb">京都府警</span></div><div class="fx"><span class="fa">三葉</span><span class="vs">vs</span><span class="fb">久御山ユナイテッド</span></div><div class="fx"><span class="fa">三葉</span><span class="vs">vs</span><span class="fb">ドン・ファン</span></div><div class="fx"><span class="fa">三葉</span><span class="vs">vs</span><span class="fb">ウラノス</span></div><div class="fx"><span class="fa">久御山ユナイテッド</span><span class="vs">vs</span><span class="fb">ウラノス</span></div><div class="fx"><span class="fa">ソウレ</span><span class="vs">vs</span><span class="fb">ティップル</span></div><div class="fx"><span class="fa">ソウレ</span><span class="vs">vs</span><span class="fb">ウラノス</span></div><div class="fx"><span class="fa">ドン・ファン</span><span class="vs">vs</span><span class="fb">京都府警</span></div></div>
+    <div class="stats">
+      <div class="stat">残り試合数<b>9 試合</b></div>
+      <div class="stat">結果の組み合わせ<b>19,683 通り</b></div>
+      <div class="stat">1試合あたりの結果<b>勝 / 分 / 負</b></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>順位の星見表（ありうる順位）</h2>
+    <div class="legend">
+      <span><i style="background:var(--on)"></i>その順位になりうる</span>
+      <span><i style="background:var(--off)"></i>なし</span>
+      <span><i style="background:var(--gold)"></i>現在の順位</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>現順位</th><th>チーム名</th><th style="text-align:center">勝点</th><th style="text-align:center">残試合</th><th style="text-align:center">最大勝点</th>
+          <th>1位〜8位</th><th>順位の幅</th>
+        </tr>
+      </thead>
+      <tbody>
+    <tr>
+      <td class="rk">1</td>
+      <td class="tn">ダスキン</td>
+      <td class="num">13</td>
+      <td class="num">2</td>
+      <td class="num">19</td>
+      <td class="grid"><span class="cell on cur">1</span><span class="cell on">2</span><span class="cell on">3</span><span class="cell on">4</span><span class="cell">5</span><span class="cell">6</span><span class="cell">7</span><span class="cell">8</span></td>
+      <td class="rng"><div class="track"><div class="bar" style="left:0.00%;width:50.00%"></div><div class="mark" style="left:6.25%"></div></div>
+        <span class="rtxt">1位 〜 4位</span></td>
+    </tr>
+    <tr>
+      <td class="rk">2</td>
+      <td class="tn">三葉</td>
+      <td class="num">10</td>
+      <td class="num">3</td>
+      <td class="num">19</td>
+      <td class="grid"><span class="cell on">1</span><span class="cell on cur">2</span><span class="cell on">3</span><span class="cell on">4</span><span class="cell on">5</span><span class="cell on">6</span><span class="cell">7</span><span class="cell">8</span></td>
+      <td class="rng"><div class="track"><div class="bar" style="left:0.00%;width:75.00%"></div><div class="mark" style="left:18.75%"></div></div>
+        <span class="rtxt">1位 〜 6位</span></td>
+    </tr>
+    <tr>
+      <td class="rk">3</td>
+      <td class="tn">久御山ユナイテッド</td>
+      <td class="num">9</td>
+      <td class="num">2</td>
+      <td class="num">15</td>
+      <td class="grid"><span class="cell on">1</span><span class="cell on">2</span><span class="cell on cur">3</span><span class="cell on">4</span><span class="cell on">5</span><span class="cell on">6</span><span class="cell on">7</span><span class="cell on">8</span></td>
+      <td class="rng"><div class="track"><div class="bar" style="left:0.00%;width:100.00%"></div><div class="mark" style="left:31.25%"></div></div>
+        <span class="rtxt">1位 〜 8位</span></td>
+    </tr>
+    <tr>
+      <td class="rk">4</td>
+      <td class="tn">ソウレ</td>
+      <td class="num">6</td>
+      <td class="num">3</td>
+      <td class="num">15</td>
+      <td class="grid"><span class="cell on">1</span><span class="cell on">2</span><span class="cell on">3</span><span class="cell on cur">4</span><span class="cell on">5</span><span class="cell on">6</span><span class="cell on">7</span><span class="cell on">8</span></td>
+      <td class="rng"><div class="track"><div class="bar" style="left:0.00%;width:100.00%"></div><div class="mark" style="left:43.75%"></div></div>
+        <span class="rtxt">1位 〜 8位</span></td>
+    </tr>
+    <tr>
+      <td class="rk">5</td>
+      <td class="tn">ドン・ファン</td>
+      <td class="num">6</td>
+      <td class="num">2</td>
+      <td class="num">12</td>
+      <td class="grid"><span class="cell">1</span><span class="cell on">2</span><span class="cell on">3</span><span class="cell on">4</span><span class="cell on cur">5</span><span class="cell on">6</span><span class="cell on">7</span><span class="cell on">8</span></td>
+      <td class="rng"><div class="track"><div class="bar" style="left:12.50%;width:87.50%"></div><div class="mark" style="left:56.25%"></div></div>
+        <span class="rtxt">2位 〜 8位</span></td>
+    </tr>
+    <tr>
+      <td class="rk">6</td>
+      <td class="tn">京都府警</td>
+      <td class="num">6</td>
+      <td class="num">2</td>
+      <td class="num">12</td>
+      <td class="grid"><span class="cell">1</span><span class="cell on">2</span><span class="cell on">3</span><span class="cell on">4</span><span class="cell on">5</span><span class="cell on cur">6</span><span class="cell on">7</span><span class="cell on">8</span></td>
+      <td class="rng"><div class="track"><div class="bar" style="left:12.50%;width:87.50%"></div><div class="mark" style="left:68.75%"></div></div>
+        <span class="rtxt">2位 〜 8位</span></td>
+    </tr>
+    <tr>
+      <td class="rk">7</td>
+      <td class="tn">ティップル</td>
+      <td class="num">6</td>
+      <td class="num">1</td>
+      <td class="num">9</td>
+      <td class="grid"><span class="cell">1</span><span class="cell">2</span><span class="cell on">3</span><span class="cell on">4</span><span class="cell on">5</span><span class="cell on">6</span><span class="cell on cur">7</span><span class="cell on">8</span></td>
+      <td class="rng"><div class="track"><div class="bar" style="left:25.00%;width:75.00%"></div><div class="mark" style="left:81.25%"></div></div>
+        <span class="rtxt">3位 〜 8位</span></td>
+    </tr>
+    <tr>
+      <td class="rk">8</td>
+      <td class="tn">ウラノス</td>
+      <td class="num">0</td>
+      <td class="num">3</td>
+      <td class="num">9</td>
+      <td class="grid"><span class="cell">1</span><span class="cell">2</span><span class="cell on">3</span><span class="cell on">4</span><span class="cell on">5</span><span class="cell on">6</span><span class="cell on">7</span><span class="cell on cur">8</span></td>
+      <td class="rng"><div class="track"><div class="bar" style="left:25.00%;width:75.00%"></div><div class="mark" style="left:93.75%"></div></div>
+        <span class="rtxt">3位 〜 8位</span></td>
+    </tr></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>読み方と前提</h2>
+    <ul class="notes">
+      <li>勝ち3点、分け1点の勝点制で計算しています（2025年度順位表の勝点と一致することを確認済み）。</li>
+      <li>同じ勝点のチームは、得失点差・総得点などの順位決定方法によって順位が変わるため、同点時は「上も下もありうる」として幅で表示しています。</li>
+      <li>金色の枠は現在の順位です。順位の幅バーの金色の線が現在位置です。</li>
+      <li>得失点（スコア）は未確定のため、勝敗（勝・分・負）のみで計算しています。</li>
+    </ul>
+  </section>
+</div>
+</body>
+</html>

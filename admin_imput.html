@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>リーグ管理 (チーム・結果入力)</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+  .form-box { margin-bottom: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; }
+  select, input[type="text"], input[type="password"] { padding: 5px; margin-bottom: 10px; }
+  input[type="number"] { width: 50px; padding: 5px; }
+  button { padding: 8px 15px; background: #0056b3; color: white; border: none; cursor: pointer; }
+  button:disabled { background: #999; }
+</style>
+</head>
+<body>
+
+<div id="loginArea">
+  <h2>管理者ログイン</h2>
+  <input type="password" id="passInput" placeholder="パスワードを入力">
+  <button onclick="checkPassword()">ログイン</button>
+</div>
+
+<div id="mainContent" style="display: none;">
+  
+  <div class="form-box">
+    <h2>1. チーム登録</h2>
+    <form id="teamForm">
+      <input type="text" id="newTeamName" placeholder="新規チーム名" required>
+      <button type="submit" id="btnTeam">登録</button>
+    </form>
+    <p id="msgTeam" style="font-size: 0.9em;"></p>
+  </div>
+
+  <div class="form-box">
+    <h2>2. 試合結果の登録</h2>
+    <form id="matchForm">
+      <div style="margin-bottom: 10px;">
+        <select id="selTeamA" required><option value="">チーム選択</option></select>
+        <input type="number" id="scoreA" min="0" placeholder="得点" required>
+      </div>
+      <div style="margin-bottom: 10px; padding-left: 20px;">
+        vs
+      </div>
+      <div style="margin-bottom: 15px;">
+        <select id="selTeamB" required><option value="">チーム選択</option></select>
+        <input type="number" id="scoreB" min="0" placeholder="得点" required>
+      </div>
+      <button type="submit" id="btnMatch">結果を送信</button>
+    </form>
+    <p id="msgMatch" style="font-size: 0.9em;"></p>
+  </div>
+  
+  <button onclick="fetchTeamsForDropdown()" style="background:#5cb85c; font-size:0.8em;">🔄 チームリストを最新化</button>
+
+</div>
+
+<script>
+// ★GASのウェブアプリURLをここに貼る
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzofU6_SmE2ibFG3HYHRj3RmPLzlS4_ZiTquXqTrVHVZZudhihik4gqKACnjYN5BcKD/exec';
+const SECRET_KEY = 'my_secret_key_1234';
+
+function checkPassword() {
+  if (document.getElementById('passInput').value === 'tipple2026') {
+    document.getElementById('loginArea').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    fetchTeamsForDropdown(); // ログイン成功時にチーム一覧を取得
+  } else {
+    alert('パスワードが違います');
+  }
+}
+
+// GASからチーム一覧を取得し、プルダウンにセットする
+async function fetchTeamsForDropdown() {
+  const selA = document.getElementById('selTeamA');
+  const selB = document.getElementById('selTeamB');
+  selA.innerHTML = '<option value="">データ取得中...</option>';
+  selB.innerHTML = '<option value="">データ取得中...</option>';
+  
+  try {
+    const response = await fetch(GAS_URL);
+    const data = await response.json();
+    
+    let options = '<option value="">チーム選択</option>';
+    data.teams.forEach(team => {
+      options += `<option value="${team}">${team}</option>`;
+    });
+    
+    selA.innerHTML = options;
+    selB.innerHTML = options;
+  } catch(e) {
+    selA.innerHTML = '<option value="">取得エラー</option>';
+    selB.innerHTML = '<option value="">取得エラー</option>';
+  }
+}
+
+// チーム登録処理
+document.getElementById('teamForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btnTeam');
+  const msg = document.getElementById('msgTeam');
+  btn.disabled = true; msg.innerText = '送信中...';
+  
+  const payload = {
+    type: "registerTeam",
+    teamName: document.getElementById('newTeamName').value,
+    secret: SECRET_KEY
+  };
+
+  try {
+    const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+    const json = await res.json();
+    if(json.status === "success") {
+      msg.innerText = '登録成功！'; msg.style.color = 'green';
+      document.getElementById('newTeamName').value = '';
+      fetchTeamsForDropdown(); // プルダウンを即時更新
+    } else {
+      msg.innerText = 'エラー: ' + json.message; msg.style.color = 'red';
+    }
+  } catch(e) { msg.innerText = '通信エラー'; msg.style.color = 'red'; }
+  finally { btn.disabled = false; }
+});
+
+// 試合結果登録処理
+document.getElementById('matchForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btnMatch');
+  const msg = document.getElementById('msgMatch');
+  btn.disabled = true; msg.innerText = '送信中...';
+  
+  const payload = {
+    type: "registerMatch",
+    teamA: document.getElementById('selTeamA').value,
+    scoreA: parseInt(document.getElementById('scoreA').value),
+    scoreB: parseInt(document.getElementById('scoreB').value),
+    teamB: document.getElementById('selTeamB').value,
+    secret: SECRET_KEY
+  };
+
+  if(payload.teamA === payload.teamB) {
+    msg.innerText = '同じチーム同士は対戦できません'; msg.style.color = 'red';
+    btn.disabled = false; return;
+  }
+
+  try {
+    const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+    const json = await res.json();
+    if(json.status === "success") {
+      msg.innerText = '登録成功！'; msg.style.color = 'green';
+      document.getElementById('matchForm').reset();
+    } else {
+      msg.innerText = 'エラー: ' + json.message; msg.style.color = 'red';
+    }
+  } catch(e) { msg.innerText = '通信エラー'; msg.style.color = 'red'; }
+  finally { btn.disabled = false; }
+});
+</script>
+</body>
+</html>
