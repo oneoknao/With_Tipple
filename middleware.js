@@ -4,8 +4,8 @@ export const config = {
 
 export default function middleware(request) {
   // ブラウザのポップアップに入力してほしいIDとパスワードを指定します
-  const expectedUser = 'admin';
-  const expectedPass = '1234';
+  const expectedUser = 'tipple';
+  const expectedPass = '2025';
 
   const basicAuth = request.headers.get('authorization');
   
