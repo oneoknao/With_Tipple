@@ -5,47 +5,135 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>リーグ順位表・対戦表</title>
 <style>
-  body { font-family: sans-serif; padding: 20px; max-width: 900px; margin: auto; }
-  h2 { border-bottom: 2px solid #333; padding-bottom: 5px; margin-top: 40px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
-  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-  th { background-color: #eee; white-space: nowrap; }
-  .cross-table th.team-header { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .cross-table td { width: 60px; }
-  .self-match { background-color: #ddd; }
+  /* 全体の基本設定 */
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    padding: 10px; /* スマホ用に余白を少し狭く */
+    max-width: 900px;
+    margin: auto;
+    background-color: #f8f9fa; /* 背景を少しグレーにして表を際立たせる */
+    color: #333;
+  }
+
+  h2 {
+    border-bottom: 2px solid #0056b3;
+    padding-bottom: 5px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: #0056b3;
+  }
+
+  /* 表のスクロール用コンテナ（スマホ対応の要） */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* iOSでのスクロールを滑らかに */
+    background: #fff; /* 表の背景を白に */
+    border-radius: 8px; /* 角を丸く */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 少し影をつける */
+    margin-bottom: 20px;
+  }
+
+  /* 共通の表スタイル */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem; /* スマホでも見やすい、少し小さめのフォント */
+    min-width: 600px; /* 順位表が潰れすぎないように最低幅を設定 */
+  }
+
+  th, td {
+    border: 1px solid #dee2e6;
+    padding: 10px 8px; /* タップしやすいように上下の余白を確保 */
+    text-align: center;
+    white-space: nowrap; /* セル内の改行を防ぐ */
+  }
+
+  th {
+    background-color: #e9ecef;
+    font-weight: bold;
+  }
+
+  /* チーム名の列は少し幅広に */
+  #standingsTable td:nth-child(2) {
+    text-align: left;
+    font-weight: bold;
+    min-width: 120px;
+    white-space: normal; /* チーム名が長い場合は改行を許容 */
+  }
+
+  /* 対戦表特有のスタイル */
+  .cross-table {
+    min-width: max-content; /* 対戦表は中身に合わせて広がるように */
+  }
+  .cross-table th.team-header {
+    max-width: 80px; /* ヘッダー幅を少しコンパクトに */
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cross-table td {
+    width: 50px;
+  }
+  .self-match {
+    background-color: #e0e0e0;
+    /* 斜線を引くスタイル */
+    background-image: linear-gradient(to top right, transparent calc(50% - 1px), #999, transparent calc(50% + 1px));
+  }
+
+  /* 読み込み中の表示 */
+  .loading-msg {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+  }
+
+  /* PC向け（画面幅が600px以上）の調整 */
+  @media (min-width: 600px) {
+    body { padding: 20px; }
+    h2 { font-size: 1.5rem; }
+    table { font-size: 0.95rem; }
+    #standingsTable td:nth-child(2) { min-width: 200px; }
+    .cross-table th.team-header { max-width: 120px; }
+    .cross-table td { width: 60px; }
+  }
 </style>
 </head>
 <body>
 
-  <h2>2025年度順位表</h2>
-  <table id="standingsTable">
-    <thead>
-      <tr>
-        <th>順位</th><th>チーム名</th><th>勝点</th><th>試合</th><th>勝</th><th>分</th><th>負</th><th>得点</th><th>失点</th><th>得失点差</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td colspan="10">データ読み込み中...</td></tr>
-    </tbody>
-  </table>
-
-  <h2>対戦表（星取表）</h2>
-  <div style="overflow-x: auto;">
-    <table id="crossTable" class="cross-table">
+  <h2>Jリーグフォーマット順位表</h2>
+  <!-- スクロール用コンテナで表を囲む -->
+  <div class="table-responsive">
+    <table id="standingsTable">
       <thead>
-        <tr id="crossHeader">
-          <th></th><!-- 左上の空白 -->
+        <tr>
+          <th>順位</th><th>チーム名</th><th>勝点</th><th>試合</th><th>勝</th><th>分</th><th>負</th><th>得点</th><th>失点</th><th>得失点差</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td>データ読み込み中...</td></tr>
+        <tr><td colspan="10" class="loading-msg">データ読み込み中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>対戦表（星取表）</h2>
+  <!-- スクロール用コンテナで表を囲む -->
+  <div class="table-responsive">
+    <table id="crossTable" class="cross-table">
+      <thead>
+        <tr id="crossHeader">
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="loading-msg">データ読み込み中...</td></tr>
       </tbody>
     </table>
   </div>
 
 <script>
 // ★GASのウェブアプリURLをここに貼る
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzofU6_SmE2ibFG3HYHRj3RmPLzlS4_ZiTquXqTrVHVZZudhihik4gqKACnjYN5BcKD/exec';
+const GAS_URL = 'GAS_WEB_APP_URL_HERE';
 
 async function loadData() {
   try {
@@ -53,20 +141,18 @@ async function loadData() {
     const data = await response.json();
     
     renderStandings(data.standings);
-    
-    // ★修正: 対戦表の描画には、順位順に並んだ rankedTeams を渡す
     renderCrossTable(data.rankedTeams, data.crossTable);
   } catch(e) {
-    document.querySelector('#standingsTable tbody').innerHTML = '<tr><td colspan="10">データの読み込みに失敗しました</td></tr>';
+    document.querySelector('#standingsTable tbody').innerHTML = '<tr><td colspan="10" class="loading-msg">データの読み込みに失敗しました</td></tr>';
+    document.querySelector('#crossTable tbody').innerHTML = '<tr><td class="loading-msg">データの読み込みに失敗しました</td></tr>';
   }
 }
 
-// 順位表の描画
 function renderStandings(standings) {
   const tbody = document.querySelector('#standingsTable tbody');
   tbody.innerHTML = '';
   if (standings.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="10">チームが登録されていません</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="loading-msg">チームが登録されていません</td></tr>';
     return;
   }
   standings.forEach(team => {
@@ -87,43 +173,41 @@ function renderStandings(standings) {
   });
 }
 
-// 対戦表の描画
 function renderCrossTable(teams, crossData) {
   const theadTr = document.getElementById('crossHeader');
   const tbody = document.querySelector('#crossTable tbody');
   
-  theadTr.innerHTML = '<th>チーム名</th>';
+  theadTr.innerHTML = '<th></th>';
   tbody.innerHTML = '';
 
   if (teams.length === 0) {
-    tbody.innerHTML = '<tr><td>データがありません</td></tr>';
+    tbody.innerHTML = '<tr><td class="loading-msg">データがありません</td></tr>';
     return;
   }
 
-  // ヘッダー行（横軸のチーム名）の生成
+  // 横軸ヘッダー
   teams.forEach(team => {
     theadTr.innerHTML += `<th class="team-header" title="${team}">${team}</th>`;
   });
 
-  // データ行の生成
+  // データ行
   teams.forEach(teamA => {
     let rowHtml = `<th class="team-header" style="text-align:left;" title="${teamA}">${teamA}</th>`;
     
     teams.forEach(teamB => {
       let scoreStr = crossData[teamA][teamB];
       if (scoreStr === '-') {
-        rowHtml += `<td class="self-match"></td>`; // 自分自身
+        rowHtml += `<td class="self-match"></td>`;
       } else if (scoreStr === '') {
-        rowHtml += `<td></td>`; // 未対戦
+        rowHtml += `<td></td>`;
       } else {
-        rowHtml += `<td>${scoreStr}</td>`; // 試合結果 (例: 2 - 1)
+        rowHtml += `<td>${scoreStr}</td>`;
       }
     });
     tbody.innerHTML += `<tr>${rowHtml}</tr>`;
   });
 }
 
-// ページ読み込み時に実行
 window.onload = loadData;
 </script>
 
