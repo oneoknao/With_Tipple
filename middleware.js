@@ -1,5 +1,5 @@
 export const config = {
-  matcher: 'admin_imput.html', // 保護したいURL（admin.html）
+  matcher: '/admin_imput.html', // 保護したいURL（admin.html）
 };
 
 export default function middleware(request) {
