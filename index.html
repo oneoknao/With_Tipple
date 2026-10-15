@@ -4,14 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>リーグ順位表・対戦表</title>
+<!-- Phosphor Iconsの読み込み -->
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 <style>
   /* 全体の基本設定 */
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    padding: 10px; /* スマホ用に余白を少し狭く */
+    padding: 10px;
+    padding-bottom: 80px; /* ★スマホメニューの高さ分、下部に余白を追加 */
     max-width: 900px;
     margin: auto;
-    background-color: #f8f9fa; /* 背景を少しグレーにして表を際立たせる */
+    background-color: #f8f9fa;
     color: #333;
   }
 
@@ -22,16 +25,17 @@
     margin-bottom: 15px;
     font-size: 1.2rem;
     color: #0056b3;
+    scroll-margin-top: 20px; /* ページ内リンクで飛んだ際の上の余白 */
   }
 
-  /* 表のスクロール用コンテナ（スマホ対応の要） */
+  /* 表のスクロール用コンテナ */
   .table-responsive {
     width: 100%;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch; /* iOSでのスクロールを滑らかに */
-    background: #fff; /* 表の背景を白に */
-    border-radius: 8px; /* 角を丸く */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 少し影をつける */
+    -webkit-overflow-scrolling: touch;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 20px;
   }
 
@@ -39,15 +43,15 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem; /* スマホでも見やすい、少し小さめのフォント */
-    min-width: 600px; /* 順位表が潰れすぎないように最低幅を設定 */
+    font-size: 0.85rem;
+    min-width: 600px;
   }
 
   th, td {
     border: 1px solid #dee2e6;
-    padding: 10px 8px; /* タップしやすいように上下の余白を確保 */
+    padding: 10px 8px;
     text-align: center;
-    white-space: nowrap; /* セル内の改行を防ぐ */
+    white-space: nowrap;
   }
 
   th {
@@ -55,20 +59,19 @@
     font-weight: bold;
   }
 
-  /* チーム名の列は少し幅広に */
   #standingsTable td:nth-child(2) {
     text-align: left;
     font-weight: bold;
     min-width: 120px;
-    white-space: normal; /* チーム名が長い場合は改行を許容 */
+    white-space: normal;
   }
 
   /* 対戦表特有のスタイル */
   .cross-table {
-    min-width: max-content; /* 対戦表は中身に合わせて広がるように */
+    min-width: max-content;
   }
   .cross-table th.team-header {
-    max-width: 80px; /* ヘッダー幅を少しコンパクトに */
+    max-width: 80px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
@@ -77,7 +80,6 @@
   }
   .self-match {
     background-color: #e0e0e0;
-    /* 斜線を引くスタイル */
     background-image: linear-gradient(to top right, transparent calc(50% - 1px), #999, transparent calc(50% + 1px));
   }
 
@@ -88,21 +90,67 @@
     color: #666;
   }
 
+  /* ★ボトムナビゲーションのスタイル設定 */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ffffff;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 65px;
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom); /* iPhoneなどの下部セーフエリア対応 */
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #6c757d; /* 非アクティブ時の色（グレー） */
+    font-size: 0.75rem;
+    flex: 1;
+    height: 100%;
+    transition: color 0.2s;
+    -webkit-tap-highlight-color: transparent; /* タップ時のハイライトを消す */
+  }
+
+  .nav-item i {
+    font-size: 1.6rem;
+    margin-bottom: 3px;
+  }
+
+  .nav-item.active {
+    color: #0056b3; /* 見出しと同じテーマカラー（青） */
+  }
+  
+  .nav-item.active i {
+    font-weight: bold; /* アクティブ時にアイコンを少し太くする */
+  }
+
   /* PC向け（画面幅が600px以上）の調整 */
   @media (min-width: 600px) {
-    body { padding: 20px; }
+    body { padding: 20px; padding-bottom: 80px; }
     h2 { font-size: 1.5rem; }
     table { font-size: 0.95rem; }
     #standingsTable td:nth-child(2) { min-width: 200px; }
     .cross-table th.team-header { max-width: 120px; }
     .cross-table td { width: 60px; }
+    
+    /* PCではボトムナビを隠す、あるいは幅を制限する設定（必要に応じて） */
+    /* .bottom-nav { display: none; } */ 
   }
 </style>
 </head>
 <body>
 
-  <h2>2025シーズン順位表</h2>
-  <!-- スクロール用コンテナで表を囲む -->
+  <!-- IDを付与してページ内リンクで飛べるように調整 -->
+  <h2 id="standings-section">2025シーズン順位表</h2>
   <div class="table-responsive">
     <table id="standingsTable">
       <thead>
@@ -116,8 +164,7 @@
     </table>
   </div>
 
-  <h2>対戦表（星取表）</h2>
-  <!-- スクロール用コンテナで表を囲む -->
+  <h2 id="cross-section">対戦表（星取表）</h2>
   <div class="table-responsive">
     <table id="crossTable" class="cross-table">
       <thead>
@@ -130,6 +177,27 @@
       </tbody>
     </table>
   </div>
+
+  <!-- ★ボトムナビゲーション -->
+  <nav class="bottom-nav">
+    <a href="#" class="nav-item active" onclick="setActive(this)">
+      <i class="ph ph-house"></i>
+      <span>ホーム</span>
+    </a>
+    <a href="#standings-section" class="nav-item" onclick="setActive(this)">
+      <i class="ph ph-list-numbers"></i>
+      <span>順位表</span>
+    </a>
+    <a href="#cross-section" class="nav-item" onclick="setActive(this)">
+      <i class="ph ph-grid-four"></i>
+      <span>対戦表</span>
+    </a>
+    <!-- その他必要なリンクがあれば追加 -->
+    <a href="#" class="nav-item" onclick="setActive(this)">
+      <i class="ph ph-gear"></i>
+      <span>設定</span>
+    </a>
+  </nav>
 
 <script>
 // ★GASのウェブアプリURLをここに貼る
@@ -206,6 +274,17 @@ function renderCrossTable(teams, crossData) {
     });
     tbody.innerHTML += `<tr>${rowHtml}</tr>`;
   });
+}
+
+// ★ボトムナビゲーションのアクティブ状態を切り替える関数
+function setActive(clickedElement) {
+  // 全てのnav-itemからactiveクラスを削除
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+    item.classList.remove('active');
+  });
+  // クリックされた要素にactiveクラスを追加
+  clickedElement.classList.add('active');
 }
 
 window.onload = loadData;
