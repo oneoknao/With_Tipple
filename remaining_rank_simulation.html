@@ -7,13 +7,13 @@
 <style>
   :root { --ink:#14202e; --sub:#6b7785; --paper:#f5f2ea; --card:#ffffff; --navy:#0f2a44; --gold:#c9a13b; --line:#e2ddd0; --on:#0f2a44; --off:#ece8dc; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--paper); color:var(--ink); font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif; padding:32px 16px; -webkit-text-size-adjust:100%; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif; padding:32px 16px; }
   .wrap { max-width:960px; margin:0 auto; }
   header { background:var(--navy); color:#fff; border-radius:14px; padding:28px 32px; position:relative; overflow:hidden; }
   header::after { content:""; position:absolute; right:-40px; top:-40px; width:200px; height:200px; border-radius:50%; border:28px solid rgba(201,161,59,.25); }
   header .eyebrow { font-size:12px; letter-spacing:.2em; color:var(--gold); }
   header h1 { margin:6px 0 6px; font-size:26px; }
-  header p { margin:0; color:#c9d3df; font-size:14px; line-height:1.6; position:relative; z-index:1; }
+  header p { margin:0; color:#c9d3df; font-size:14px; }
   section { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px 24px; margin-top:20px; }
   h2 { font-size:16px; margin:0 0 14px; display:flex; align-items:center; gap:10px; }
   h2::before { content:""; width:4px; height:16px; background:var(--gold); border-radius:2px; }
@@ -43,67 +43,7 @@
   .stat { background:var(--paper); border-radius:10px; padding:12px 14px; font-size:13px; color:var(--sub); }
   .stat b { display:block; color:var(--ink); font-size:20px; margin-top:4px; font-variant-numeric:tabular-nums; }
   ul.notes { margin:0; padding-left:18px; font-size:13px; color:var(--sub); line-height:1.8; }
-
-  /* ---------- タブレット ---------- */
-  @media (max-width:860px) {
-    td.rng { width:170px; }
-    td.tn { min-width:120px; }
-  }
-
-  /* ---------- スマホ：表をカード表示に切り替え ---------- */
-  @media (max-width:720px) {
-    body { padding:12px 10px 28px; }
-    header { padding:20px 18px; border-radius:12px; }
-    header::after { width:140px; height:140px; right:-50px; top:-50px; border-width:20px; }
-    header h1 { font-size:21px; line-height:1.35; }
-    header p { font-size:13px; }
-    section { padding:16px 14px; margin-top:14px; border-radius:12px; }
-    h2 { font-size:15px; margin-bottom:12px; }
-
-    .fixtures { grid-template-columns:1fr; gap:8px; }
-    .fx { padding:10px 12px; font-size:14px; }
-    .fa { text-align:left; }
-    .fb { text-align:right; }
-
-    .stats { grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
-    .stat { padding:10px 8px; font-size:11px; text-align:center; }
-    .stat b { font-size:15px; margin-top:4px; }
-
-    .legend { gap:6px 14px; }
-
-    /* table → cards */
-    table, tbody { display:block; width:100%; }
-    thead { display:none; }
-    tr { display:grid; grid-template-columns:repeat(3,1fr); gap:0 8px; background:var(--paper); border-radius:12px; padding:12px; margin-bottom:10px; }
-    tr:last-child { margin-bottom:0; }
-    td { display:block; padding:0; border-bottom:none; }
-
-    td.rk { grid-column:1; grid-row:1; width:auto; text-align:left; align-self:center; }
-    td.rk::before { content:"現在"; font-size:11px; color:var(--sub); font-weight:600; margin-right:2px; }
-    td.rk::after { content:"位"; font-size:11px; color:var(--sub); font-weight:600; }
-    td.rk { font-size:20px; }
-    td.tn { grid-column:2 / 4; grid-row:1; min-width:0; white-space:normal; font-size:16px; text-align:right; align-self:center; line-height:1.3; }
-
-    td.num { grid-row:2; width:auto; margin-top:10px; padding:8px 4px; background:var(--card); border-radius:8px; font-size:16px; font-weight:700; }
-    td.num::before { content:attr(data-label); display:block; font-size:10px; font-weight:600; color:var(--sub); margin-bottom:2px; }
-    td.num:nth-of-type(3) { grid-column:1; }
-    td.num:nth-of-type(4) { grid-column:2; }
-    td.num:nth-of-type(5) { grid-column:3; }
-
-    td.grid { grid-column:1 / 4; grid-row:3; margin-top:12px; white-space:normal; display:grid; grid-template-columns:repeat(8,1fr); gap:4px; }
-    td.grid::before { content:"ありうる順位（1位〜8位）"; grid-column:1 / -1; font-size:11px; font-weight:600; color:var(--sub); margin-bottom:2px; }
-    td.grid .cell { width:100%; height:auto; aspect-ratio:1 / 1; margin:0; font-size:13px; border-radius:6px; }
-
-    td.rng { grid-column:1 / 4; grid-row:4; width:auto; margin-top:12px; padding-top:4px; }
-    .rtxt { font-size:12px; margin-top:6px; }
-
-    ul.notes { font-size:12.5px; line-height:1.75; padding-left:16px; }
-  }
-
-  @media (max-width:360px) {
-    td.grid .cell { font-size:11px; }
-    .stat b { font-size:13px; }
-  }
+  @media (max-width:720px) { .fixtures { grid-template-columns:1fr 1fr; } .stats { grid-template-columns:1fr; } td.grid .cell { width:24px; height:24px; font-size:11px; margin-right:2px; } td.rng { width:150px; } }
 </style>
 </head>
 <body>
@@ -142,9 +82,9 @@
     <tr>
       <td class="rk">1</td>
       <td class="tn">ダスキン</td>
-      <td class="num" data-label="勝点">13</td>
-      <td class="num" data-label="残試合">2</td>
-      <td class="num" data-label="最大勝点">19</td>
+      <td class="num">13</td>
+      <td class="num">2</td>
+      <td class="num">19</td>
       <td class="grid"><span class="cell on cur">1</span><span class="cell on">2</span><span class="cell on">3</span><span class="cell on">4</span><span class="cell">5</span><span class="cell">6</span><span class="cell">7</span><span class="cell">8</span></td>
       <td class="rng"><div class="track"><div class="bar" style="left:0.00%;width:50.00%"></div><div class="mark" style="left:6.25%"></div></div>
         <span class="rtxt">1位 〜 4位</span></td>
@@ -152,9 +92,9 @@
     <tr>
       <td class="rk">2</td>
       <td class="tn">三葉</td>
-      <td class="num" data-label="勝点">10</td>
-      <td class="num" data-label="残試合">3</td>
-      <td class="num" data-label="最大勝点">19</td>
+      <td class="num">10</td>
+      <td class="num">3</td>
+      <td class="num">19</td>
       <td class="grid"><span class="cell on">1</span><span class="cell on cur">2</span><span class="cell on">3</span><span class="cell on">4</span><span class="cell on">5</span><span class="cell on">6</span><span class="cell">7</span><span class="cell">8</span></td>
       <td class="rng"><div class="track"><div class="bar" style="left:0.00%;width:75.00%"></div><div class="mark" style="left:18.75%"></div></div>
         <span class="rtxt">1位 〜 6位</span></td>
@@ -162,9 +102,9 @@
     <tr>
       <td class="rk">3</td>
       <td class="tn">久御山ユナイテッド</td>
-      <td class="num" data-label="勝点">9</td>
-      <td class="num" data-label="残試合">2</td>
-      <td class="num" data-label="最大勝点">15</td>
+      <td class="num">9</td>
+      <td class="num">2</td>
+      <td class="num">15</td>
       <td class="grid"><span class="cell on">1</span><span class="cell on">2</span><span class="cell on cur">3</span><span class="cell on">4</span><span class="cell on">5</span><span class="cell on">6</span><span class="cell on">7</span><span class="cell on">8</span></td>
       <td class="rng"><div class="track"><div class="bar" style="left:0.00%;width:100.00%"></div><div class="mark" style="left:31.25%"></div></div>
         <span class="rtxt">1位 〜 8位</span></td>
@@ -172,9 +112,9 @@
     <tr>
       <td class="rk">4</td>
       <td class="tn">ソウレ</td>
-      <td class="num" data-label="勝点">6</td>
-      <td class="num" data-label="残試合">3</td>
-      <td class="num" data-label="最大勝点">15</td>
+      <td class="num">6</td>
+      <td class="num">3</td>
+      <td class="num">15</td>
       <td class="grid"><span class="cell on">1</span><span class="cell on">2</span><span class="cell on">3</span><span class="cell on cur">4</span><span class="cell on">5</span><span class="cell on">6</span><span class="cell on">7</span><span class="cell on">8</span></td>
       <td class="rng"><div class="track"><div class="bar" style="left:0.00%;width:100.00%"></div><div class="mark" style="left:43.75%"></div></div>
         <span class="rtxt">1位 〜 8位</span></td>
@@ -182,9 +122,9 @@
     <tr>
       <td class="rk">5</td>
       <td class="tn">ドンファン</td>
-      <td class="num" data-label="勝点">6</td>
-      <td class="num" data-label="残試合">2</td>
-      <td class="num" data-label="最大勝点">12</td>
+      <td class="num">6</td>
+      <td class="num">2</td>
+      <td class="num">12</td>
       <td class="grid"><span class="cell">1</span><span class="cell on">2</span><span class="cell on">3</span><span class="cell on">4</span><span class="cell on cur">5</span><span class="cell on">6</span><span class="cell on">7</span><span class="cell on">8</span></td>
       <td class="rng"><div class="track"><div class="bar" style="left:12.50%;width:87.50%"></div><div class="mark" style="left:56.25%"></div></div>
         <span class="rtxt">2位 〜 8位</span></td>
@@ -192,9 +132,9 @@
     <tr>
       <td class="rk">6</td>
       <td class="tn">京都府警</td>
-      <td class="num" data-label="勝点">6</td>
-      <td class="num" data-label="残試合">2</td>
-      <td class="num" data-label="最大勝点">12</td>
+      <td class="num">6</td>
+      <td class="num">2</td>
+      <td class="num">12</td>
       <td class="grid"><span class="cell">1</span><span class="cell on">2</span><span class="cell on">3</span><span class="cell on">4</span><span class="cell on">5</span><span class="cell on cur">6</span><span class="cell on">7</span><span class="cell on">8</span></td>
       <td class="rng"><div class="track"><div class="bar" style="left:12.50%;width:87.50%"></div><div class="mark" style="left:68.75%"></div></div>
         <span class="rtxt">2位 〜 8位</span></td>
@@ -202,9 +142,9 @@
     <tr>
       <td class="rk">7</td>
       <td class="tn">ティップル</td>
-      <td class="num" data-label="勝点">6</td>
-      <td class="num" data-label="残試合">1</td>
-      <td class="num" data-label="最大勝点">9</td>
+      <td class="num">6</td>
+      <td class="num">1</td>
+      <td class="num">9</td>
       <td class="grid"><span class="cell">1</span><span class="cell">2</span><span class="cell on">3</span><span class="cell on">4</span><span class="cell on">5</span><span class="cell on">6</span><span class="cell on cur">7</span><span class="cell on">8</span></td>
       <td class="rng"><div class="track"><div class="bar" style="left:25.00%;width:75.00%"></div><div class="mark" style="left:81.25%"></div></div>
         <span class="rtxt">3位 〜 8位</span></td>
@@ -212,9 +152,9 @@
     <tr>
       <td class="rk">8</td>
       <td class="tn">ウラノス</td>
-      <td class="num" data-label="勝点">0</td>
-      <td class="num" data-label="残試合">3</td>
-      <td class="num" data-label="最大勝点">9</td>
+      <td class="num">0</td>
+      <td class="num">3</td>
+      <td class="num">9</td>
       <td class="grid"><span class="cell">1</span><span class="cell">2</span><span class="cell on">3</span><span class="cell on">4</span><span class="cell on">5</span><span class="cell on">6</span><span class="cell on">7</span><span class="cell on cur">8</span></td>
       <td class="rng"><div class="track"><div class="bar" style="left:25.00%;width:75.00%"></div><div class="mark" style="left:93.75%"></div></div>
         <span class="rtxt">3位 〜 8位</span></td>
