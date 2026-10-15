@@ -1,0 +1,185 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ティップル残留条件</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Kaku+Gothic+New:wght@700;900&display=swap">
+<style>
+/* Layout: 結論3カード → 残り試合の対戦表(星取表と同じ並び) → 勝/分/負ごとの条件 */
+:root{
+  --bg:#f5f7fa; --surface:#ffffff; --fg:#1d2733; --muted:#5d6b7a; --line:#dbe2ea; --head:#e9eef3;
+  --accent:#0b5cb8; --accent-soft:#dce9f8; --accent-fg:#ffffff;
+  --good:#18794e; --good-soft:#dff3e8; --warn:#9a5b00; --warn-soft:#fdf0d5; --bad:#b3261e; --bad-soft:#fbe3e1;
+  --shadow:0 1px 3px rgba(20,40,70,.08);
+  --f-body:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  --f-disp:"Zen Kaku Gothic New","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1620; --surface:#18212d; --fg:#e6ecf2; --muted:#98a6b5; --line:#2b3745; --head:#202c3a;
+  --accent:#6aaaf0; --accent-soft:#1d3552; --accent-fg:#0b1420;
+  --good:#5fd29b; --good-soft:#143627; --warn:#f0b955; --warn-soft:#3a2d12; --bad:#ff8d86; --bad-soft:#3d1e1d;
+  --shadow:none; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1620; --surface:#18212d; --fg:#e6ecf2; --muted:#98a6b5; --line:#2b3745; --head:#202c3a;
+  --accent:#6aaaf0; --accent-soft:#1d3552; --accent-fg:#0b1420;
+  --good:#5fd29b; --good-soft:#143627; --warn:#f0b955; --warn-soft:#3a2d12; --bad:#ff8d86; --bad-soft:#3d1e1d;
+  --shadow:none; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.7 var(--f-body);
+  padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:32px}
+h1{font:900 28px/1.3 var(--f-disp);margin:0;color:var(--accent);text-wrap:balance}
+h2{font:900 20px/1.4 var(--f-disp);margin:0 0 4px;padding-bottom:6px;border-bottom:2px solid var(--accent);color:var(--accent);text-wrap:balance}
+h3{font:700 16px/1.5 var(--f-disp);margin:0}
+p{margin:0}
+.lead{color:var(--muted);margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-size:13px;font-variant-numeric:tabular-nums}
+.chip b{font-weight:700}
+section{display:flex;flex-direction:column;gap:14px;min-width:0}
+.sub{color:var(--muted);font-size:13px}
+
+/* verdict cards */
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.vc{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;min-width:0}
+.vc .res{font:900 13px var(--f-disp);letter-spacing:.06em;color:var(--muted)}
+.vc .pts{font:900 34px/1.1 var(--f-disp);font-variant-numeric:tabular-nums}
+.vc .pts small{font-size:14px;font-weight:700;margin-left:2px}
+.tag{align-self:flex-start;font-weight:700;font-size:13px;padding:2px 10px;border-radius:999px}
+.vc.w .tag{background:var(--good-soft);color:var(--good)} .vc.w .pts{color:var(--good)}
+.vc.d .tag{background:var(--warn-soft);color:var(--warn)} .vc.d .pts{color:var(--warn)}
+.vc.l .tag{background:var(--bad-soft);color:var(--bad)} .vc.l .pts{color:var(--bad)}
+.vc p{font-size:14px}
+
+/* matrix */
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%}
+.mx{min-width:700px;font-variant-numeric:tabular-nums}
+.mx th,.mx td{border:1px solid var(--line);text-align:center;padding:0;height:46px}
+.mx thead th{background:var(--head);font-size:12px;padding:8px 4px;font-weight:700}
+.mx tbody th{background:var(--head);font-size:13px;text-align:left;padding:0 10px;white-space:nowrap;position:sticky;left:0}
+.mx tr.tip th{color:var(--accent-fg);background:var(--accent)}
+.mx td.self{background:repeating-linear-gradient(135deg,var(--head) 0 6px,var(--line) 6px 7px)}
+.mx td.done{color:var(--muted);font-size:12px}
+.mx td.todo{position:relative}
+.mx td.todo b{display:block;font:900 17px/1.1 var(--f-disp)}
+.mx td.todo i{display:block;font-style:normal;font-size:11px;font-weight:700;line-height:1.2}
+.todo.key{background:var(--accent);color:var(--accent-fg)}
+.todo.a{background:var(--good-soft);color:var(--good)}
+.todo.b{background:var(--accent-soft);color:var(--accent)}
+.todo.c{background:var(--warn-soft);color:var(--warn)}
+.todo.n{background:transparent;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
+.sw.key{background:var(--accent)} .sw.a{background:var(--good-soft)} .sw.b{background:var(--accent-soft)} .sw.c{background:var(--warn-soft)} .sw.d{background:var(--surface)}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13.5px}
+
+/* scenario blocks */
+.sc{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;min-width:0}
+.sc header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{font:900 15px var(--f-disp);padding:3px 12px;border-radius:6px}
+.sc.w .badge{background:var(--good-soft);color:var(--good)}
+.sc.d .badge{background:var(--warn-soft);color:var(--warn)}
+.sc.l .badge{background:var(--bad-soft);color:var(--bad)}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;counter-reset:s}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+ol.steps li::before{content:counter(s);width:24px;height:24px;border-radius:50%;background:var(--head);font:700 13px/24px var(--f-body);text-align:center}
+.tbl{overflow-x:auto}
+.rt{min-width:520px;font-size:14px}
+.rt th,.rt td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.rt thead th{background:var(--head);font-size:12px}
+.rt td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.rt .m{color:var(--muted);font-size:13px}
+.res-final{font-size:14px}
+.ok{color:var(--good);font-weight:700} .ng{color:var(--bad);font-weight:700}
+.foot{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>ティップル残留条件(6位以上)</h1>
+  <p class="lead">残りは<b>ソゥレ戦1試合</b>。その結果と、他チームの残り8試合の組み合わせで決まります。</p>
+  <div class="chips">
+    <span class="chip">現在 <b>7位</b></span>
+    <span class="chip">勝点 <b>6</b>(2勝4敗)</span>
+    <span class="chip">得失点差 <b>-9</b>(勝点6で並ぶ4チーム中で最下位)</span>
+    <span class="chip">残り全 <b>9試合</b>(リーグ全体)</span>
+  </div>
+</header>
+
+<section>
+  <h2>結論</h2>
+  <div class="verdict">
+    <div class="vc w"><span class="res">ソゥレに勝つ</span><span class="pts">勝点9</span><span class="tag">ほぼ確定</span>
+      <p>上位3チームを除く4チームのうち、勝点9以上に届くのが2チームまでなら6位以内。</p></div>
+    <div class="vc d"><span class="res">ソゥレと引き分け</span><span class="pts">勝点7</span><span class="tag">条件がそろえば残留</span>
+      <p>ドン・ファンvs京都府警の決着、負けた側の連敗、ウラノスの勝点6以下、の3つが必要。</p></div>
+    <div class="vc l"><span class="res">ソゥレに負ける</span><span class="pts">勝点6</span><span class="tag">得失点差の大逆転のみ</span>
+      <p>勝点では確定せず、並んだチームを得失点差で上回る必要があります。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>残り試合の対戦表</h2>
+  <p class="sub">星取表と同じ並びです。色のついたマスが未消化の9試合で、文字は「行のチームから見て、ティップルに都合のよい結果」です。</p>
+  <div class="scroll"><table class="mx"><thead><tr><th></th><th scope="col">ダスキン</th><th scope="col">三葉</th><th scope="col">久御山</th><th scope="col">ソゥレ</th><th scope="col">ドン・ファン</th><th scope="col">京都府警</th><th scope="col">ティップル</th><th scope="col">ウラノス</th></tr></thead><tbody><tr><th scope="row">ダスキン</th><td class="self"></td><td class="done">2-2</td><td class="done">2-0</td><td class="todo a"><b>勝</b><i>◎</i></td><td class="done">2-0</td><td class="todo a"><b>勝</b><i>◎</i></td><td class="done">3-0</td><td class="done">10-2</td></tr><tr><th scope="row">三葉</th><td class="done">2-2</td><td class="self"></td><td class="todo n"><b>―</b><i></i></td><td class="done">3-1</td><td class="todo a"><b>勝</b><i>◎</i></td><td class="done">5-3</td><td class="done">2-1</td><td class="todo b"><b>勝</b><i>○</i></td></tr><tr><th scope="row">久御山</th><td class="done">0-2</td><td class="todo n"><b>―</b><i></i></td><td class="self"></td><td class="done">5-2</td><td class="done">3-1</td><td class="done">6-3</td><td class="done">3-4</td><td class="todo b"><b>勝</b><i>○</i></td></tr><tr><th scope="row">ソゥレ</th><td class="todo a"><b>負</b><i>◎</i></td><td class="done">1-3</td><td class="done">2-5</td><td class="self"></td><td class="done">1-0</td><td class="done">12-1</td><td class="todo key"><b>負</b><i>必須</i></td><td class="todo b"><b>分</b><i>○</i></td></tr><tr><th scope="row">ドン・ファン</th><td class="done">0-2</td><td class="todo a"><b>負</b><i>◎</i></td><td class="done">1-3</td><td class="done">0-1</td><td class="self"></td><td class="todo c"><b>分*</b><i>△</i></td><td class="done">3-1</td><td class="done">1-0</td></tr><tr><th scope="row">京都府警</th><td class="todo a"><b>負</b><i>◎</i></td><td class="done">3-5</td><td class="done">3-6</td><td class="done">1-12</td><td class="todo c"><b>分*</b><i>△</i></td><td class="self"></td><td class="done">5-0</td><td class="done">8-1</td></tr><tr class="tip"><th scope="row">ティップル</th><td class="done">0-3</td><td class="done">1-2</td><td class="done">4-3</td><td class="todo key"><b>勝</b><i>必須</i></td><td class="done">1-3</td><td class="done">0-5</td><td class="self"></td><td class="done">1-0</td></tr><tr><th scope="row">ウラノス</th><td class="done">2-10</td><td class="todo b"><b>負</b><i>○</i></td><td class="todo b"><b>負</b><i>○</i></td><td class="todo b"><b>分</b><i>○</i></td><td class="done">0-1</td><td class="done">1-8</td><td class="done">0-1</td><td class="self"></td></tr></tbody></table></div>
+  <div class="legend">
+    <span><i class="sw key"></i>必須:ティップル自身の試合</span>
+    <span><i class="sw a"></i>◎ 影響大</span>
+    <span><i class="sw b"></i>○ 影響あり</span>
+    <span><i class="sw c"></i>△ 状況で逆転</span>
+    <span>灰色の数字は消化済みの星取(行チームの得点-相手の得点)</span>
+  </div>
+  <div class="note">
+    <b>分*(ドン・ファンvs京都府警)</b>:ティップルが勝つ場合は引き分けが最良です。ティップルが引き分ける場合は、引き分け以外(どちらかの勝ち)が必須になります。<br>
+    <b>三葉vs久御山</b>は、どちらが勝っても残留条件には影響しません。
+  </div>
+</section>
+
+<section>
+  <h2>結果別の条件</h2>
+
+  <article class="sc w">
+    <header><span class="badge">勝ち</span><h3>ソゥレに勝って勝点9</h3></header>
+    <p>ダスキン(13)・三葉(10)・久御山(9)は、すでに勝点9以上が確定しています。ティップルが6位以内に残るには、残り4チームのうち<b>勝点9以上に届くチームを2つまで</b>に抑える必要があります。3チーム以上が届くと圏外です。</p>
+    <div class="tbl"><table class="rt">
+      <thead><tr><th>チーム</th><th>現在</th><th>勝点9以上に届く条件</th><th>関係する試合</th></tr></thead>
+      <tbody>
+        <tr><td>ソゥレ</td><td class="n">6</td><td>ティップルに負けた後、どちらかで1勝</td><td class="m">ダスキン戦 / ウラノス戦</td></tr>
+        <tr><td>ドン・ファン</td><td class="n">6</td><td>どちらかで1勝</td><td class="m">三葉戦 / 京都府警戦</td></tr>
+        <tr><td>京都府警</td><td class="n">6</td><td>どちらかで1勝</td><td class="m">ダスキン戦 / ドン・ファン戦</td></tr>
+        <tr><td>ウラノス</td><td class="n">0</td><td>3戦全勝</td><td class="m">三葉戦 / 久御山戦 / ソゥレ戦</td></tr>
+      </tbody></table></div>
+    <p class="res-final">ドン・ファンvs京都府警が引き分けなら、2チームとも9に届きにくくなります。ダスキン・三葉がドン・ファンと京都府警に勝つ展開も、ティップルに有利です。勝点9で並ぶチームが出た場合は、得失点差で決まります。</p>
+  </article>
+
+  <article class="sc d">
+    <header><span class="badge">引き分け</span><h3>ソゥレと引き分けて勝点7</h3></header>
+    <p>ダスキン・三葉・久御山・ソゥレの4チームは勝点7以上になるため、ティップルの上に残ります。5番目までに収めるには、次の<b>3つすべて</b>が必要です。</p>
+    <ol class="steps">
+      <li><span>ドン・ファンvs京都府警が<b>引き分け以外</b>(どちらかが勝つ)。勝った側が5番目の上位になります。</span></li>
+      <li><span>負けた側が<b>もう1試合も落とす</b>。ドン・ファンが負けたなら三葉戦も負け、京都府警が負けたならダスキン戦も負けで、勝点6止まりになります。</span></li>
+      <li><span>ウラノスが<b>勝点6以下</b>。三葉・久御山・ソゥレとの3戦で「2勝1分」以上にならないこと(3戦全勝も不可)。</span></li>
+    </ol>
+    <p class="res-final">勝点7で並ぶチームが出る展開(ウラノスが7、両チームが引き分けて残り1敗、など)は得失点差勝負です。ティップルの得失点差は最下位なので、厳しい戦いになります。</p>
+  </article>
+
+  <article class="sc l">
+    <header><span class="badge">負け</span><h3>ソゥレに負けて勝点6のまま</h3></header>
+    <p>ソゥレが勝点9に上がるため、勝点だけでは6位に届きません。引き分けの条件①〜③がそろい、<b>勝点6で並んだチームをティップルが得失点差で上回る</b>場合にだけ残れます。</p>
+    <div class="tbl"><table class="rt">
+      <thead><tr><th>並ぶ相手</th><th>現在の得失点差</th><th>必要な大敗(ティップルが0-1で負けた場合)</th></tr></thead>
+      <tbody>
+        <tr><td>京都府警</td><td class="n">-4</td><td>残り2試合(ダスキン戦・ドン・ファン戦)で合計7点差以上の連敗</td></tr>
+        <tr><td>ドン・ファン</td><td class="n">-2</td><td>残り2試合(三葉戦・京都府警戦)で合計9点差以上の連敗</td></tr>
+      </tbody></table></div>
+    <p class="res-final">ティップルの失点差が大きいほど、必要な点差も増えます。実質的には、勝つか引き分けるかが前提です。</p>
+  </article>
+</section>
+
+<footer class="foot">
+  <span>前提:勝点は勝ち3・分け1・負け0。同勝点の順位は得失点差(順位表の並びから判断)。ティップルの残り試合はソゥレ戦のみ。</span>
+  <span>未消化の9試合(勝・分・負)の全19,683通りを計算して確認しました。勝点で並ぶ場合は、ティップルに不利な側(同点は負け扱い)で判定しています。</span>
+</footer>
+</div>
+
+</body></html>
